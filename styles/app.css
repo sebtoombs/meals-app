@@ -5,3 +5,65 @@
 body {
   @apply bg-gray-200;
 }
+
+.ModalDev {
+  top: 0;
+}
+
+@screen md {
+  .ModalDev {
+    top: 2.5rem;
+  }
+}
+
+.Toastify__toast-container {
+  &.Toastify__toast-container--bottom-center {
+    left: 0;
+    width: 100%;
+    margin-left: 0;
+    bottom: 0;
+    @apply px-2;
+  }
+  @media (min-width: 28rem) {
+    &.toast-container-dev {
+      @apply max-w-md mx-auto;
+      left: 50%;
+      margin-left: -14rem;
+    }
+  }
+
+  .Toastify__toast {
+    @apply rounded;
+
+    .Toastify__close-button {
+      @apply self-center cursor-pointer text-gray-900 text-xl p-2;
+    }
+
+    &.Toastify__toast--default {
+      @apply bg-white text-gray-900;
+    }
+
+    &.Toastify__toast--success {
+      @apply bg-green-600 text-gray-200;
+    }
+
+    &.Toastify__toast--warning {
+      @apply bg-orange-400 text-gray-900;
+    }
+
+    &.Toastify__toast--info {
+      @apply bg-blue-500 text-gray-200;
+    }
+
+    &.Toastify__toast--error {
+      @apply bg-red-400 text-gray-200;
+    }
+  }
+}
+
+@media only screen and (max-width: 480px) {
+  .Toastify__toast-container.Toastify__toast-container--bottom-center
+    .Toastify__toast {
+    margin-bottom: 1rem;
+  }
+}
