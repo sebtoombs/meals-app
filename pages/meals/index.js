@@ -13,6 +13,7 @@ import Button from "../../components/Button";
 import { MdClose, MdAdd } from "react-icons/md";
 import FAB from "../../components/FAB";
 import ClientOnlyPortal from "../../components/ClientOnlyPortal";
+import modalService from "../../lib/modalService";
 
 MealsPage.getInitialProps = async ({ req, query }) => {
   /*const protocol = req
@@ -35,6 +36,7 @@ const MealsPageStyled = styled.div`
 function MealsPage({ meals, page, pageCount }) {
   const handleAddMeal = () => {
     console.log("add new meal");
+    modalService.emit("modal::add_meal::open");
   };
 
   return (

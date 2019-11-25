@@ -23,7 +23,7 @@ const stringFracToDecimal = stringFrac => {
 const makeWidth = props => {
   //TODO breakpoint widths
 
-  let widthStyle = ``;
+  let widthStyle = `width: 100%;`;
   let w;
 
   if (props.w) {

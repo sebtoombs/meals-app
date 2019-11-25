@@ -49,7 +49,7 @@ function HomePage() {
 
   const showAddToCalendarModal = (day = null) => {
     return e => {
-      modalService.emit("modal::add_to_calendar::show", { day });
+      modalService.emit("modal::add_to_calendar::open", { day });
     };
   };
 

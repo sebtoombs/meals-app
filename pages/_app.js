@@ -6,6 +6,8 @@ import { ThemeProvider } from "styled-components";
 
 import "../styles/app.css";
 import ModalAddToCalendar from "../components/ModalAddToCalendar";
+//import EntryModal from "../components/Modals/Entry";
+import MealModal from "../components/Modals/Meal";
 
 import Modal from "react-modal";
 
@@ -44,8 +46,13 @@ const theme = {
 };
 
 const DevWrapper = styled.div`
-  ${tw`max-w-md mx-auto md:mt-10 bg-white shadow-lg flex relative overflow-y-scroll`} min-height: 812px;
-  max-height: 812px;
+  ${tw`max-w-md mx-auto md:mt-10 bg-white shadow-lg flex relative overflow-y-scroll`}
+  min-height: 100vh;
+  @media (min-width: 768px) {
+    min-height: 812px;
+    max-height: 812px;
+  }
+
   & > * {
     width: 100%;
   }
@@ -56,7 +63,9 @@ const DevWrapper = styled.div`
 
 export default class MyApp extends App {
   async componentDidMount() {
-    Modal.setAppElement("#devWrapper");
+    process.env.NODE_ENV === "production"
+      ? Modal.setAppElement("body")
+      : Modal.setAppElement("#devWrapper");
 
     /*const calendar = await this.fetchCalendar();
     this.setState({
@@ -72,6 +81,7 @@ export default class MyApp extends App {
           <StateProvider>
             <Component {...pageProps} />
             <ModalAddToCalendar />
+            <MealModal />
             <BottomNavigation />
           </StateProvider>
         </DevWrapper>

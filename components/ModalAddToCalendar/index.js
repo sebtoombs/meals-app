@@ -55,9 +55,9 @@ function ModalAddToCalendar(props) {
   };
 
   useEffect(() => {
-    modalService.on("modal::add_to_calendar::show", handleShowModal);
+    modalService.on("modal::add_to_calendar::open", handleShowModal);
     return () => {
-      modalService.off("modal::add_to_calendar::show", handleShowModal);
+      modalService.off("modal::add_to_calendar::open", handleShowModal);
     };
   }, []);
 
