@@ -31,7 +31,7 @@ const fetcher = async url => {
 const List = props => {
   const { data, error } = useSWR("meals", fetcher);
 
-  const mealsList = !data ? [null, null, null] : data.meals;
+  const mealsList = !data ? [null, null, null] : data;
 
   const mealImage = meal => {
     if (!meal || !meal.image) return null;
@@ -50,7 +50,7 @@ const List = props => {
 
   return (
     <div css={tw`p-4`}>
-      <div css={tw`pb-4`}>
+      <div css={tw`pb-4 text-right`}>
         <Button
           link
           icon={<MdClose />}
@@ -62,7 +62,7 @@ const List = props => {
       </div>
       {mealsList.map((meal, index) => (
         <div css={tw`mb-3`} key={index}>
-          <Card onClick={selectMeal(meal)} as="button">
+          <Card onClick={selectMeal(meal)} as="button" css={tw`block w-full`}>
             <ListItem>
               <ListItemImage>
                 {meal ? mealImage(meal) : <Skeleton />}

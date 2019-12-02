@@ -62,6 +62,24 @@ const DevWrapper = styled.div`
 `;
 
 export default class MyApp extends App {
+  static async getInitialProps({ Component, ctx }) {
+    let pageProps = {};
+    if (Component.getInitialProps) {
+      pageProps = await Component.getInitialProps(ctx);
+    }
+    if (ctx.req && ctx.req.session && ctx.req.session.passport) {
+      pageProps.user = ctx.req.session.passport.user;
+    }
+    return { pageProps };
+  }
+
+  constructor(props) {
+    super(props);
+    this.state = {
+      user: props.pageProps.user
+    };
+  }
+
   async componentDidMount() {
     process.env.NODE_ENV === "production"
       ? Modal.setAppElement("body")
@@ -75,14 +93,24 @@ export default class MyApp extends App {
 
   render() {
     const { Component, pageProps } = this.props;
+
+    const props = {
+      ...pageProps,
+      user: this.state.user
+    };
     return (
       <ThemeProvider theme={theme}>
         <DevWrapper id="devWrapper">
           <StateProvider>
-            <Component {...pageProps} />
-            <ModalAddToCalendar />
-            <MealModal />
-            <BottomNavigation />
+            <Component {...props} />
+
+            {props.user ? (
+              <>
+                <ModalAddToCalendar />
+                <MealModal />
+                <BottomNavigation />
+              </>
+            ) : null}
           </StateProvider>
         </DevWrapper>
       </ThemeProvider>

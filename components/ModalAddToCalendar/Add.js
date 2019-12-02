@@ -3,7 +3,6 @@ import styled from "styled-components/macro";
 import Button from "../Button";
 import { MdChevronLeft } from "react-icons/md";
 import DaySelect from "../DaySelect";
-import { addToCalendar } from "../../lib/api";
 
 const AddMeal = props => {
   const { meal } = props;
@@ -14,7 +13,7 @@ const AddMeal = props => {
 
   return (
     <div css={tw`p-4`}>
-      <div css={tw`pb-4`}>
+      <div css={tw`pb-4 text-right`}>
         <Button
           link
           icon={<MdChevronLeft />}

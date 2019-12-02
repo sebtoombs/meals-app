@@ -1,14 +1,19 @@
 const config = require("./config");
 const create = require("./create");
 const uuidv1 = require("uuid/v1");
+const { format } = require("date-fns");
 
 const userId = "User:" + uuidv1();
 const calendarId = "Calendar:" + uuidv1();
 const mealId1 = "Meal:" + uuidv1();
 
+console.log("user PK", userId);
+
 const ingredientId1 = "Ingredient:" + uuidv1();
 
 const imageId1 = "Image:" + uuidv1();
+
+const today = format(new Date(), "yyyy-MM-dd");
 
 const seedData = [
   //User
@@ -34,7 +39,8 @@ const seedData = [
   {
     pk: mealId1,
     sk: "Meal",
-    id: "Turmeric Pepper Roast Chicken",
+    id: "turmeric-pepper-roast-chicken",
+    name: "Turmeric Pepper Roast Chicken",
     name_extra: "with Asparagus, Almond & Quinoa"
   },
   //Add ingredient
@@ -53,7 +59,7 @@ const seedData = [
   //Add entry to calendar
   {
     pk: calendarId,
-    sk: "Date:2019-11-22",
+    sk: "Date:" + today,
     id: mealId1
   },
   //Add "image" to meal

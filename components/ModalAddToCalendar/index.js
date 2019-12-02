@@ -63,7 +63,7 @@ function ModalAddToCalendar(props) {
 
   const handleAddToCalendar = async () => {
     handleCloseModal();
-    await addToCalendar(selectedMeal.id, selectedDay.date);
+    await addToCalendar(selectedMeal.pk, selectedDay.date);
     mutate("calendar");
     toast.success(`${selectedMeal.name} added to ${selectedDay.name}`);
     setSelectedDay(null);

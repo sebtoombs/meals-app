@@ -15,8 +15,9 @@ const customStyles = {
     maxWidth: process.env.NODE_ENV === "production" ? "100%" : "28rem",
     width: process.env.NODE_ENV === "production" ? "auto" : "100%",
     /*height: process.env.NODE_ENV === "production" ? "auto" : "812px",*/
-    height: "100%",
-    overflowY: "scroll",
+    height: process.env.NODE_ENV === "production" ? "100%" : "812px",
+    maxHeight: process.env.NODE_ENV === "production" ? "100%" : "100%",
+    overflowY: "auto",
     transform:
       process.env.NODE_ENV === "production" ? "none" : "translateX(-50%)"
   },

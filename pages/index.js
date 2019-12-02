@@ -27,6 +27,8 @@ import DayEntry from "../components/CalendarDayEntry";
 import { fetchCalendar } from "../lib/api";
 import useSWR from "swr";
 
+import withAuth from "../utils/withAuth";
+
 /*HomePage.getInitialProps = async ({ req, query }) => {
   const pageRequest = buildRequestURI(
     "calendar?filter.date.gte=today&limit=14",
@@ -195,4 +197,4 @@ function HomePage() {
   );
 }
 
-export default HomePage;
+export default withAuth(HomePage);

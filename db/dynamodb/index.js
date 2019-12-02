@@ -4,7 +4,7 @@ module.exports = {
   config: require("./config"),
   install: require("./install"),
   create: require("./create"),
-  get: require("./get"),
+  //get: require("./get"),
   query: require("./query"),
   update: require("./update"),
   delete: require("./delete")

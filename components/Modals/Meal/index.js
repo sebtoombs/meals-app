@@ -17,19 +17,39 @@ import Col from "../../Col";
 
 //import "../../../lib/url";
 
-import { addMeal } from "../../../lib/api";
+import to from "../../../utils/to";
+
+import { addMeal, uploadImage } from "../../../lib/api";
+
+import fetch from "isomorphic-unfetch";
+//import FormData from "form-data";
 
 export default function MealModal(props) {
   const render = ({ openModal, closeModal, data }) => {
     const [selectedImage, setSelectedImage] = useState();
 
     const onDrop = useCallback(acceptedFiles => {
-      console.log(acceptedFiles);
       setSelectedImage(acceptedFiles[0]);
     }, []);
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
       onDrop
     });
+
+    const handleUploadImage = e => {
+      e.preventDefault();
+      const data = new FormData();
+      data.append("file", selectedImage);
+      //data.append("filename", fileName);
+
+      fetch("http://localhost:3000/api/image", {
+        method: "POST",
+        body: data
+      })
+        .then(response => response.json())
+        .then(data => {
+          console.log("Result: ", data);
+        });
+    };
 
     return (
       <div css={tw`p-4`}>
@@ -43,6 +63,8 @@ export default function MealModal(props) {
             Cancel
           </Button>
         </div>
+
+        <Button onClick={handleUploadImage}>Upload</Button>
 
         <Formik
           initialValues={{ name: "", name_extra: "" }}
@@ -62,7 +84,8 @@ export default function MealModal(props) {
           }}
           onSubmit={async (values, { setSubmitting }) => {
             console.log("submit", values);
-            await addMeal(values);
+            const meal = await addMeal({ ...values });
+            console.log("Added: ", meal);
             setSubmitting(false);
           }}
         >

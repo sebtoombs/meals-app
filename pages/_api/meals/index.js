@@ -1,20 +1,13 @@
 const db = require("../../../lib/db");
 const escape = require("sql-template-strings");
-const cloudinary = require("cloudinary").v2;
 
 module.exports = (req, res) => {
+  console.log("API/MEALS", req.method);
   if (req.method === "GET") {
     return getMeals(req, res);
-  } else if (req.method === "POST") {
-    return createMeal(req, res);
   } else {
     return res.status(405).send("Method not allowed");
   }
-};
-
-const createMeal = async (req, res) => {
-  console.log(req.body);
-  return res.status(200).json({ message: "ok" });
 };
 
 const getMeals = async (req, res) => {

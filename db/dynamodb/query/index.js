@@ -1,3 +1,5 @@
+const { format } = require("date-fns");
+
 const config = require("../config");
 const _defaultParams = {
   TableName: "meals"
@@ -7,6 +9,9 @@ const _defaultParams = {
 // Helpers
 
 function _getByKey(pk, sk) {
+  if (Array.isArray(pk)) {
+    return _batchGetByKey(pk, sk);
+  }
   let params = {
     ..._defaultParams,
     Key: {
@@ -20,6 +25,29 @@ function _getByKey(pk, sk) {
     .promise()
     .then(resp => resp.Item);
 }
+
+function _batchGetByKey(pks, sk) {
+  const Keys = pks.map(pk => {
+    return { pk, sk };
+  });
+
+  const tableName = _defaultParams.TableName;
+
+  let params = {};
+  params.RequestItems = {};
+  params.RequestItems[tableName] = { Keys };
+
+  return config.docClient
+    .batchGet(params)
+    .promise()
+    .then(resp => resp.Responses)
+    .then(responses => {
+      if (typeof responses[tableName] !== "undefined")
+        return responses[tableName];
+      return null;
+    });
+}
+
 function _queryByKey(key, keyValue, isSingle = false) {
   let params = {
     ..._defaultParams,
@@ -112,12 +140,14 @@ function getCalendarByPk(pk) {
 
 //Get entries for calendar
 function getEntriesByCalendarPk(pk) {
+  const today = format(new Date(), "yyyy-MM-dd");
+
   const params = {
     ..._defaultParams,
     KeyConditionExpression: "pk = :pk and sk between :sk2 and :sk",
     ExpressionAttributeValues: {
       ":pk": pk,
-      ":sk": "Date:2019-11-22",
+      ":sk": "Date:" + today,
       ":sk2": "Date:"
     }
   };

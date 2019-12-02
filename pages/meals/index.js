@@ -26,7 +26,7 @@ MealsPage.getInitialProps = async ({ req, query }) => {
     1}&limit=${query.limit || 9}`;
   const res = await fetch(pageRequest);
   const json = await res.json();
-  return json;
+  return { meals: json, page: 1, pageCount: 1 };
 };
 
 const MealsPageStyled = styled.div`
@@ -44,7 +44,7 @@ function MealsPage({ meals, page, pageCount }) {
       <div css={tw`px-2 py-8`}>
         {meals.map((meal, index) => (
           <div css={tw`mb-3`} key={index}>
-            <Link href="/meals/[id]" as={`/meals/${meal.id}`}>
+            <Link href="/meals/[id]" as={`/meals/${meal.pk}`}>
               <Card>
                 <ListItem>
                   <ListItemImage />
