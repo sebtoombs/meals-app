@@ -14,13 +14,28 @@ import { Formik, Form, Field, ErrorMessage } from "formik";
 import { MdArrowForward } from "react-icons/md";
 import Button from "../components/Button";
 import fetch from "isomorphic-unfetch";
+import to from "../utils/to";
+import { apiFetch } from "../lib/api";
 
 const LoginPageStyled = styled.div`
   ${tw`bg-teal-700 min-h-full px-8`}
 `;
 
 function LoginPage() {
-  const doLogin = async credentials => {};
+  const doLogin = async credentials => {
+    console.log("Logging in...");
+    const [err, resp] = await to(
+      apiFetch("auth/login", {
+        method: "POST",
+        body: credentials
+      })
+    );
+    if (err) {
+      console.log("ERROR!", err.response);
+      return;
+    }
+    console.log(resp);
+  };
 
   return (
     <LoginPageStyled>
@@ -52,7 +67,7 @@ function LoginPage() {
           }}
         >
           {({ isSubmitting }) => (
-            <Form>
+            <Form noValidate>
               <FormGroup>
                 <Label>Email</Label>
                 <Input as={Field} type="email" name="email" large="true" />
