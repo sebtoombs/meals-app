@@ -1,43 +1,9 @@
 import { useState, useEffect } from "react";
-//TODO turn this into a HOC
-
-/*export default function useLongPress(callback = () => {}, ms = 300) {
-  const [startLongPress, setStartLongPress] = useState(false);
-
-  useEffect(() => {
-    let timerId;
-    if (startLongPress) {
-      timerId = setTimeout(callback, ms);
-    } else {
-      clearTimeout(timerId);
-    }
-
-    return () => {
-      clearTimeout(timerId);
-    };
-  }, [startLongPress]);
-
-  const onEventStart = () => {
-    setStartLongPress(true);
-  };
-  const onEventEnd = () => {
-    setStartShortPress(false);
-  };
-
-  return {
-    onMouseDown: onEventStart,
-    onMouseUp: onEventEnd,
-    onMouseLeave: onEventEnd,
-    onTouchStart: onEventStart,
-    onTouchEnd: onEventEnd
-  };
-}
-*/
 
 export default function useLongPress({
   onClick = null,
   onLongPress = null,
-  ms = 300
+  ms = 300,
 }) {
   const [pressed, setPressed] = useState(false);
   const [longPress, setLongPress] = useState(false);
@@ -46,16 +12,11 @@ export default function useLongPress({
   const longPressCb = onLongPress;
   const shortPressCb = onClick ? onClick : false;
 
-  const onEventStart = e => {
-    /*var touch =
-      e.originalEvent && e.originalEvent.touches && e.originalEvent.touches[0];
-    //e = touch || e;*/
-    //console.log(e.pageX, e.pageY);
-
+  const onEventStart = (e) => {
     setMoved(false);
     setPressed(true);
   };
-  const onEventEnd = e => {
+  const onEventEnd = (e) => {
     if (pressed && !moved) {
       shortPressHandler(e);
       setPressed(false);
@@ -67,7 +28,7 @@ export default function useLongPress({
     setLongPress(true);
   };
 
-  const shortPressHandler = e => {
+  const shortPressHandler = (e) => {
     if (longPress) return;
     if (shortPressCb) shortPressCb.call(null, e);
   };
@@ -96,21 +57,6 @@ export default function useLongPress({
     onTouchMove: () => {
       setMoved(true);
       setPressed(false);
-    }
+    },
   };
-  /*return class extends React.Component {
-    render() {
-      let passProps = this.props;
-      return (
-        <WrappedComponent
-          {...passProps}
-          onMouseDown={onEventStart}
-          onMouseUp={onEventEnd}
-          onMouseLeave={onEventEnd}
-          onTouchStart={onEventStart}
-          onTouchEnd={onEventEnd}
-        />
-      );
-    }
-  };*/
 }
