@@ -1,4 +1,13 @@
 import { ApolloServer } from "apollo-server-micro";
+import {
+  startOfDay,
+  format,
+  addDays,
+  endOfDay,
+  formatISO,
+  parseISO,
+  parse,
+} from "date-fns";
 import { GraphQLDate } from "graphql-iso-date";
 import {
   asNexusMethod,
@@ -7,6 +16,8 @@ import {
   nullable,
   objectType,
   stringArg,
+  intArg,
+  booleanArg,
 } from "nexus";
 import path from "path";
 import prisma from "../../lib/prisma";
@@ -19,21 +30,168 @@ const User = objectType({
     t.int("id");
     t.string("name");
     t.string("email");
-    // t.list.field("posts", {
-    //   type: "Post",
-    //   resolve: (parent) =>
-    //     prisma.user
-    //       .findUnique({
-    //         where: { id: Number(parent.id) },
-    //       })
-    //       .posts(),
-    // });
+    t.list.field("families", {
+      type: "Family",
+      resolve: (parent) =>
+        prisma.user
+          .findUnique({
+            where: {
+              id: { in: Number(parent.id) },
+            },
+          })
+          .families(),
+    });
+  },
+});
+
+const Family = objectType({
+  name: "Family",
+  definition(t) {
+    t.int("id");
+    t.string("name");
+    t.list.field("members", {
+      type: "User",
+      resolve: (parent) =>
+        prisma.family
+          .findUnique({
+            where: { id: Number(parent.id) },
+          })
+          .members(),
+    });
+  },
+});
+
+const CalendarEntry = objectType({
+  name: "CalendarEntry",
+  definition(t) {
+    t.int("id");
+    t.date("date");
+    t.field("meal", {
+      type: "Meal",
+      resolve: (parent) => {
+        return prisma.meal.findUnique({
+          where: { id: Number(parent.mealId) },
+        });
+      },
+    });
+  },
+});
+
+const Meal = objectType({
+  name: "Meal",
+  definition(t) {
+    t.int("id");
+    t.string("name");
+    t.string("description");
+  },
+});
+
+const CalendarDayEntry = objectType({
+  name: "CalendarDayEntry",
+  definition(t) {
+    t.date("date");
+    t.list.field("entries", {
+      type: "CalendarEntry",
+      resolve: (parent) => {
+        // Resolving like this is pretty inefficient
+        const entryIds = parent.entries.map((entry) => entry.id);
+
+        return prisma.calendarEntry.findMany({
+          where: { id: { in: entryIds } },
+        });
+      },
+    });
   },
 });
 
 const Query = objectType({
   name: "Query",
   definition(t) {
+    t.list.field("calendar", {
+      type: "CalendarDayEntry",
+      args: {
+        includeEmpty: booleanArg(),
+        startDate: GQLDate,
+        days: intArg(),
+      },
+      resolve: async (_, args) => {
+        // TODO accept TZ or startdate from client here
+        args.days = args.days || 14;
+        const startDate = startOfDay(args.startDate || new Date());
+        const endDate = endOfDay(addDays(startDate, args.days));
+
+        // Get entries within the fortnight
+        const entries = await prisma.calendarEntry.findMany({
+          where: {
+            AND: [
+              {
+                date: {
+                  gt: startDate,
+                },
+              },
+              {
+                date: {
+                  lte: endDate,
+                },
+              },
+            ],
+          },
+          orderBy: [{ date: "asc" }],
+        });
+
+        // const entriesByDate = new Array(args.days).fill().map(_,i)
+
+        // Collect by date
+        const entriesByDate = entries.reduce((obj, entry) => {
+          const dateFmt = format(entry.date, "yyyy-MM-dd");
+
+          if (typeof obj[dateFmt] === "undefined")
+            obj[dateFmt] = {
+              // date: parse(dateFmt, "yyyy-MM-dd", entry.date),
+              date: dateFmt,
+              entries: [],
+            };
+
+          obj[dateFmt].entries.push(entry);
+          return obj;
+        }, {});
+
+        // Insert missing days if required
+        if (args.includeEmpty) {
+          const lastEntry = Object.keys(entriesByDate)[
+            Object.keys(entriesByDate).length - 1
+          ];
+          new Array(args.days).fill().map((_, i) => {
+            const date = startOfDay(addDays(startDate, i));
+            const key = format(date, "yyyy-MM-dd");
+            if (typeof entriesByDate[key] === "undefined" && key < lastEntry) {
+              entriesByDate[key] = { date: key, entries: [] };
+            }
+          });
+        }
+
+        return Object.values(entriesByDate).sort((a, b) => {
+          if (a.date < b.date) return -1;
+          if (a.date > b.date) return 1;
+          return 0;
+        });
+      },
+    });
+    t.list.field("meals", {
+      type: "Meal",
+      resolve: async (_, args) => prisma.meal.findMany(),
+    });
+    t.field("meal", {
+      type: "Meal",
+      args: {
+        mealId: nonNull(intArg()),
+      },
+      resolve: (_, args) => {
+        return prisma.meal.findUnique({
+          where: { id: Number(args.mealId) },
+        });
+      },
+    });
     // t.field("post", {
     //   type: "Post",
     //   args: {
@@ -80,75 +238,50 @@ const Query = objectType({
   },
 });
 
-// const Mutation = objectType({
-//   name: "Mutation",
-//   definition(t) {
-//     t.field("signupUser", {
-//       type: "User",
-//       args: {
-//         name: stringArg(),
-//         email: nonNull(stringArg()),
-//       },
-//       resolve: (_, { name, email }, ctx) => {
-//         return prisma.user.create({
-//           data: {
-//             name,
-//             email,
-//           },
-//         });
-//       },
-//     });
+const Mutation = objectType({
+  name: "Mutation",
+  definition(t) {
+    t.field("addCalendarEntry", {
+      type: "CalendarEntry",
+      args: {
+        mealId: intArg(),
+        date: GQLDate,
+      },
+      resolve: (_, { mealId, date }, ctx) => {
+        return prisma.calendarEntry.create({
+          data: {
+            date,
+            mealId,
+          },
+        });
+      },
+    });
 
-//     t.nullable.field("deletePost", {
-//       type: "Post",
-//       args: {
-//         postId: stringArg(),
-//       },
-//       resolve: (_, { postId }, ctx) => {
-//         return prisma.post.delete({
-//           where: { id: Number(postId) },
-//         });
-//       },
-//     });
-
-//     t.field("createDraft", {
-//       type: "Post",
-//       args: {
-//         title: nonNull(stringArg()),
-//         content: stringArg(),
-//         authorEmail: stringArg(),
-//       },
-//       resolve: (_, { title, content, authorEmail }, ctx) => {
-//         return prisma.post.create({
-//           data: {
-//             title,
-//             content,
-//             published: false,
-//             author: {
-//               connect: { email: authorEmail },
-//             },
-//           },
-//         });
-//       },
-//     });
-
-//     t.nullable.field("publish", {
-//       type: "Post",
-//       args: {
-//         postId: stringArg(),
-//       },
-//       resolve: (_, { postId }, ctx) => {
-//         return prisma.post.update({
-//           where: { id: Number(postId) },
-//           data: { published: true },
-//         });
-//       },
-//     });
-//   },
-// });
+    t.field("removeCalendarEntry", {
+      type: "CalendarEntry",
+      args: {
+        id: intArg(),
+      },
+      resolve: (_, { id }, ctx) => {
+        return prisma.calendarEntry.delete({
+          where: { id: Number(id) },
+        });
+      },
+    });
+  },
+});
 
 export const schema = makeSchema({
-  types: [Query, Post, User, GQLDate], //Mutation,
+  types: [
+    Query,
+    Mutation,
+    User,
+    Family,
+    CalendarEntry,
+    Meal,
+    GQLDate,
+    CalendarDayEntry,
+  ],
   outputs: {
     // typegen: path.join(process.cwd(), "pages/api/nexus-typegen.ts"),
     schema: path.join(process.cwd(), "pages/api/schema.graphql"),
@@ -161,6 +294,14 @@ export const config = {
   },
 };
 
-export default new ApolloServer({ schema }).createHandler({
+export default new ApolloServer({
+  schema,
+  playground:
+    process.env.NODE_ENV === "development"
+      ? {
+          endpoint: "/api",
+        }
+      : null,
+}).createHandler({
   path: "/api",
 });

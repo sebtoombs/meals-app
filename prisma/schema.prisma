@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  previewFeatures = ["groupBy"]
 }
 
 datasource db {
@@ -10,33 +11,26 @@ datasource db {
 model User {
   id       Int      @id @default(autoincrement())
   email    String   @unique
-  name     String?
-  profile  Profile?
-  families Family[]
-}
-
-model Profile {
-  id     Int    @id @default(autoincrement())
-  bio    String
-  userId Int    @unique
-  user   User   @relation(fields: [userId], references: [id])
+  name     String? 
+  families Family[] @relation(name: "UserFamilies")
 }
 
 model Family {
   id      Int    @id @default(autoincrement())
   name    String
-  members User[]
+  members User[] @relation(name: "UserFamilies")
 }
 
 model CalendarEntry {
   id     Int   @id @default(autoincrement())
   mealId Int?
   meal   Meal? @relation(fields: [mealId], references: [id])
+  date   DateTime
 }
 
 model Meal {
   id            Int             @id @default(autoincrement())
   name          String
-  description   String
+  description   String?
   CalendarEntry CalendarEntry[]
 }

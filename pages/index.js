@@ -1,14 +1,17 @@
 import Head from "next/head";
 
+import { Calendar } from "../components/Calendar";
+
 export default function Home() {
   return (
     <div>
       <Head>
-        <title>Create Next App</title>
+        <title>Meals</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
-
-      <main>Main</main>
+      <main>
+        <Calendar />
+      </main>
     </div>
   );
 }
